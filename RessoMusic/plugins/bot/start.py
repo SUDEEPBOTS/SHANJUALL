@@ -27,9 +27,10 @@ from strings import get_string
 from RessoMusic.misc import SUDOERS
 
 YUMI_PICS = [
-"https://files.catbox.moe/qku62r.jpg",
-"https://files.catbox.moe/bg4de4.jpg",
-"https://files.catbox.moe/tc0v57.jpg",
+"https://files.catbox.moe/yezu0r.jpg",
+"https://files.catbox.moe/7vrzle.jpg",
+"https://files.catbox.moe/qhgan6.jpg",
+"https://files.catbox.moe/cyk7ea.jpg",
 ]
 
 GREET = [
@@ -65,13 +66,13 @@ async def start_pm(client, message: Message, _):
     await asyncio.sleep(0.1)
     await loading_1.edit_text("<b>ʜєʏ ʙᴧʙʏ! 💞</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>Yꪊќɪ</b>")
+    await loading_1.edit_text("<b>𝚲𝛈𝛊𝛄𝛂</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>Yꪊќɪ ꭙ</b>")
+    await loading_1.edit_text("<b>𝚲𝛈𝛊𝛄𝛂 ꭙ</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>Yꪊќɪ ꭙ ϻᴜsɪᴄ ♪</b>")
+    await loading_1.edit_text("<b>𝚲𝛈𝛊𝛄𝛂 ꭙ ϻᴜsɪᴄ ♪</b>")
     await asyncio.sleep(0.1)
-    await loading_1.edit_text("<b>Yꪊќɪ ꭙ ϻᴜsɪᴄ♪\nsᴛᴧʀᴛed❤️‍🔥!🥀</b>")
+    await loading_1.edit_text("<b>𝚲𝛈𝛊𝛄𝛂 ꭙ ϻᴜsɪᴄ♪\nsᴛᴧʀᴛed❤️‍🔥!🥀</b>")
     await asyncio.sleep(0.1)
     await loading_1.delete()
 
@@ -261,6 +262,7 @@ async def welcome(client, message: Message):
                 await message.stop_propagation()
         except Exception as ex:
             print(ex)
+
 
 
 
