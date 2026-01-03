@@ -6,11 +6,11 @@ from RessoMusic.utils.formatters import time_to_seconds
 def track_markup(_, videoid, user_id, channel, fplay):
     buttons = [
         [
-            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/GOJO_SUPPORT_GROUP_II"),
-            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/hehe_heeeeee"),
+            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/+rQqhGhdP7tRkMmM1"),
+            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/ll_MY_CORE_ll"),
         ],
         [
-            InlineKeyboardButton("˹ʏᴜᴋɪ ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
+            InlineKeyboardButton("˹ᴀɴɪʏᴀ ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
         ],
         [InlineKeyboardButton(text=_["CLOSE_BUTTON"], callback_data="close")],
     ]
@@ -20,11 +20,11 @@ def track_markup(_, videoid, user_id, channel, fplay):
 def stream_markup(_, chat_id):
     buttons = [
         [
-            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/GOJO_SUPPORT_GROUP_II"),
-            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/hehe_heeeeee"),
+            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/+rQqhGhdP7tRkMmM1"),
+            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/ll_MY_CORE_ll"),
         ],
         [
-            InlineKeyboardButton("˹ʏᴜᴋɪ ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
+            InlineKeyboardButton("˹ᴀɴɪʏᴀ ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
         ],
         [
             InlineKeyboardButton(text="▷", callback_data=f"ADMIN Resume|{chat_id}"),
