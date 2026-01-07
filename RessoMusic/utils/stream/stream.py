@@ -132,6 +132,8 @@ async def stream(
                 reply_markup=upl,
                 has_spoiler=True
             )
+    
+    # 🔥 UPDATED YOUTUBE BLOCK (Supports API + Aria2)
     elif streamtype == "youtube":
         link = result["link"]
         vidid = result["vidid"]
@@ -146,10 +148,19 @@ async def stream(
             return await app.send_message(original_chat_id, "You can't add more than 10 songs to the queue.")
 
         try:
-            file_path, direct = await YouTube.download(
-                vidid, mystic, videoid=True, video=status
-            )
-        except:
+            # ✅ Logic: Check if link is Direct (Catbox/HTTP) or YouTube ID
+            if "http" in link and "youtube" not in link and "youtu.be" not in link:
+                # API wala fast download (Aria2 Trigger hoga)
+                file_path, direct = await YouTube.download(
+                    link, mystic, videoid=None, video=status
+                )
+            else:
+                # Purana Fallback (Video ID se download)
+                file_path, direct = await YouTube.download(
+                    vidid, mystic, videoid=True, video=status
+                )
+        except Exception as e:
+            print(f"Download Error: {e}")
             raise AssistantErr(_["play_14"])
 
         if await is_active_chat(chat_id):
@@ -209,6 +220,7 @@ async def stream(
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "stream"
+            
     elif streamtype == "soundcloud":
         file_path = result["filepath"]
         title = result["title"]
@@ -432,3 +444,4 @@ async def stream(
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
             await mystic.delete()
+            
