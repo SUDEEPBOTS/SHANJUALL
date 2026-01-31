@@ -6,7 +6,6 @@ from RessoMusic.misc import SUDOERS, mongodb
 from config import BANNED_USERS
 
 # --- DATABASE SETUP ---
-# Collection to store ignored users (Jo allowed hain)
 media_db = mongodb.media_whitelist
 allowed_cache = []
 
@@ -20,7 +19,7 @@ async def load_allowed_cache():
 loop = asyncio.get_event_loop()
 loop.create_task(load_allowed_cache())
 
-# --- HELPER: ADMIN CHECK ---
+# --- HELPER: ADMIN CHECK (For Button Clicking Only) ---
 async def is_admin_or_sudo(chat_id, user_id):
     if user_id in SUDOERS: return True
     try:
@@ -31,20 +30,20 @@ async def is_admin_or_sudo(chat_id, user_id):
         pass
     return False
 
-# --- COMMAND: /clearall (Reset Whitelist) ---
+# --- COMMAND: /clearall ---
 @app.on_message(filters.command(["clearall", "resetmedia"]) & filters.group & ~BANNED_USERS)
 async def clear_allow_list(client, message: Message):
+    # Command sirf Admin use kar sakta hai
     if not await is_admin_or_sudo(message.chat.id, message.from_user.id):
         return await message.reply_text("❌ You are not an Admin.")
 
     await media_db.delete_many({})
     allowed_cache.clear()
     
-    await message.reply_text("✅ **Media Whitelist Cleared!**\n\nAb sabke media messages wapas check honge (except Admins).")
+    await message.reply_text("✅ **Media Whitelist Cleared!**\n\nAb sabke media messages (Admins included) wapas check honge.")
 
 
 # --- MAIN LOGIC: MEDIA WATCHER ---
-# Update: Removed filters.sticker, Added filters.animation (for GIFs)
 @app.on_message(filters.group & (filters.photo | filters.video | filters.document | filters.audio | filters.animation) & ~BANNED_USERS, group=80)
 async def anti_media_watcher(client, message: Message):
     chat_id = message.chat.id
@@ -54,11 +53,13 @@ async def anti_media_watcher(client, message: Message):
 
     user_id = message.from_user.id
 
-    # 1. Admin/Sudo Ignore
-    if await is_admin_or_sudo(chat_id, user_id):
+    # 1. Sirf Sudoers (Bot Owners) Ignore honge.
+    # Group Admins ab ignore NAHI honge.
+    if user_id in SUDOERS:
         return
 
     # 2. Whitelisted User Ignore
+    # Agar Admin ne button daba kar allow kiya hai, toh ignore karo
     if user_id in allowed_cache:
         return
 
@@ -69,7 +70,7 @@ async def anti_media_watcher(client, message: Message):
     
     buttons = InlineKeyboardMarkup([
         [
-            InlineKeyboardButton("Ignore User (Allow)", callback_data=f"allow_media|{user_id}")
+            InlineKeyboardButton("✅ Allow User (Admin Only)", callback_data=f"allow_media|{user_id}")
         ],
         [
             InlineKeyboardButton("Add Me", url=f"https://t.me/{bot_username}?startgroup=true")
@@ -80,22 +81,31 @@ async def anti_media_watcher(client, message: Message):
         f"🚫 **Media Not Allowed**\n"
         f"👤 **User:** {user_mention}\n"
         f"⏳ **Status:** **Deleting in 3 mins...**\n"
-        f"ℹ️ **Admin can allow this user below.**"
+        f"ℹ️ **Admin can allow this user below to stop deletion.**"
     )
 
-    # Pehle Warning Bhejo (Delete mat karo abhi)
+    # Warning Bhejo
     warn_msg = await message.reply_text(text, reply_markup=buttons)
 
     # 3. Wait 3 Minutes (180 Seconds)
     await asyncio.sleep(180)
 
-    # 4. Ab User ka Media Delete karo
+    # 4. RE-CHECK BEFORE DELETE (Important!)
+    # Agar 3 minute ke andar kisi ne "Allow" daba diya, toh ab delete mat karo.
+    if user_id in allowed_cache:
+        try:
+            await warn_msg.delete() # Warning hata do kyunki banda allow ho gaya
+        except:
+            pass
+        return # Message delete mat karo
+
+    # 5. Delete Message (Agar abhi bhi allowed nahi hai)
     try:
         await message.delete()
     except:
-        pass # Agar message pehle hi delete ho gaya ho ya permission na ho
+        pass 
 
-    # 5. Ab Bot ki Warning Delete karo
+    # 6. Delete Warning
     try:
         await warn_msg.delete()
     except:
@@ -105,7 +115,7 @@ async def anti_media_watcher(client, message: Message):
 # --- CALLBACK: IGNORE BUTTON ---
 @app.on_callback_query(filters.regex("allow_media") & ~BANNED_USERS)
 async def allow_user_callback(client, callback_query: CallbackQuery):
-    # Check Admin
+    # Button sirf Admin daba sakta hai
     if not await is_admin_or_sudo(callback_query.message.chat.id, callback_query.from_user.id):
         return await callback_query.answer("❌ Sirf Admin allow kar sakta hai!", show_alert=True)
 
@@ -116,8 +126,10 @@ async def allow_user_callback(client, callback_query: CallbackQuery):
         await media_db.insert_one({"user_id": target_user_id})
         
         await callback_query.answer("User Allowed!", show_alert=True)
+        
+        # Message update karo taaki pata chale allow ho gaya
         await callback_query.message.edit_text(
-            f"✅ **User Allowed Successfully!**\n\nAb ye user media bhej sakta hai."
+            f"✅ **User Allowed Successfully!**\n\nAb is user ka media delete nahi hoga."
         )
     else:
         await callback_query.answer("User pehle se Allowed hai.", show_alert=True)
