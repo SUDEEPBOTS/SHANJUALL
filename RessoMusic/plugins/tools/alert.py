@@ -38,14 +38,22 @@ async def command_alert_watcher(client, message: Message):
 
     # 2. If Normal User -> SEND ALERT
     user_mention = message.from_user.mention
-    command_used = message.text.split()[0] # e.g. /info, /filter
+    
+    # Command ko split karke lowercase mein convert kar rahe hain taaki '/Profile' bhi pakda jaye
+    # Example: '/profile@ChatFightBot' -> '/profile@chatfightbot'
+    command_used = message.text.split()[0].lower()
 
     # Customize message based on command
     action_text = ""
+    
+    # Check Logic: "filter" word command mein hai kya?
     if "filter" in command_used:
         action_text = "⚠️ **This user is trying to set/change Filters!**"
+        
+    # Check Logic: "info", "profile", ya "whois" command mein hai kya?
     elif "info" in command_used or "profile" in command_used or "whois" in command_used:
         action_text = "🕵️ **This user is checking Profile/Info!**"
+        
     else:
         action_text = f"⚠️ **Used the command:** `{command_used}`"
 
@@ -85,4 +93,4 @@ async def alert_off_callback(client, callback_query: CallbackQuery):
         await callback_query.message.edit_text("✅ **Admin Alerts have been Disabled for this session.**")
     else:
         await callback_query.answer("Already Disabled!", show_alert=True)
-      
+        
