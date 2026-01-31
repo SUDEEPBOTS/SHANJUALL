@@ -33,6 +33,8 @@ pyrogram
 TgCrypto
 groq
 pytz
+gpytranslate
+
 
 
 
