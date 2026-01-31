@@ -62,7 +62,7 @@ async def check_abuse_with_ai(text):
     try:
         chat_completion = client_groq.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are a content moderator. If user input contains explicit abusive words (gaali like bc, mc, bsdk, fuck, asshole etc), reply 'YES'. Else 'NO'."},
+                {"role": "system", "content": "You are a content moderator. If user input contains explicit abusive words (gaali like bc, mc, bsdk, fuck,lodu,asshole etc), reply 'YES'. Else 'NO'."},
                 {"role": "user", "content": text}
             ],
             model="llama-3.3-70b-versatile",
