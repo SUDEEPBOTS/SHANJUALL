@@ -6,7 +6,7 @@ from RessoMusic.misc import SUDOERS, mongodb
 from config import BANNED_USERS
 
 # --- DATABASE SETUP ---
-# Collection to store ignored users
+# Collection to store ignored users (Jo allowed hain)
 media_db = mongodb.media_whitelist
 allowed_cache = []
 
@@ -44,7 +44,8 @@ async def clear_allow_list(client, message: Message):
 
 
 # --- MAIN LOGIC: MEDIA WATCHER ---
-@app.on_message(filters.group & (filters.photo | filters.video | filters.document | filters.audio | filters.sticker) & ~BANNED_USERS, group=80)
+# Update: Removed filters.sticker, Added filters.animation (for GIFs)
+@app.on_message(filters.group & (filters.photo | filters.video | filters.document | filters.audio | filters.animation) & ~BANNED_USERS, group=80)
 async def anti_media_watcher(client, message: Message):
     chat_id = message.chat.id
     
@@ -121,4 +122,4 @@ async def allow_user_callback(client, callback_query: CallbackQuery):
     else:
         await callback_query.answer("User pehle se Allowed hai.", show_alert=True)
         await callback_query.message.delete()
-      
+        
