@@ -4,7 +4,6 @@ import asyncio
 from pyrogram import filters, enums
 from pyrogram.types import Message, ChatPermissions
 from RessoMusic import app
-# Fix: Import SUDOERS correctly
 from RessoMusic.misc import SUDOERS
 
 # --- API CREDENTIALS (SightEngine) ---
@@ -94,19 +93,17 @@ async def nsfw_detector(client, message: Message):
 
             # B. Lock Stickers for the Group (Panic Mode)
             try:
-                # Sirf Text aur Media allow karenge, Stickers/GIFs band
+                # SAFE PERMISSIONS (Old Version Compatible)
+                # can_send_other_messages=False kar diya, isse Sticker/GIF/Games sab band ho jayega
                 await client.set_chat_permissions(
                     chat_id,
                     ChatPermissions(
                         can_send_messages=True,
                         can_send_media_messages=True,
+                        can_send_other_messages=False,  # 🚫 THIS BLOCKS STICKERS & GIFS
                         can_send_polls=True,
                         can_invite_users=True,
-                        can_pin_messages=False,
-                        can_send_stickers=False,       # 🚫 STICKERS OFF
-                        can_send_animations=False,     # 🚫 GIFS OFF
-                        can_send_games=False,
-                        can_use_inline_bots=False
+                        can_pin_messages=False
                     )
                 )
 
@@ -124,6 +121,6 @@ async def nsfw_detector(client, message: Message):
                 await message.reply_text(
                     f"🚨 **NSFW Detected!**\n"
                     f"Deleted content from {message.from_user.mention}.\n"
-                    f"⚠️ I tried to lock stickers but I don't have permission!"
-              )
-              
+                    f"⚠️ I tried to lock stickers but I don't have permission! Error: {e}"
+                )
+                
