@@ -15,29 +15,22 @@ TIMEZONE = pytz.timezone("Asia/Kolkata")
 LOCK_HOUR = 1   # 1 AM
 UNLOCK_HOUR = 6 # 6 AM
 
-# --- PERMISSIONS (ADVANCED - Works on Pyrogram v2+) ---
+# --- PERMISSIONS (SAFE MODE - NO CRASH) ---
+# Maine yahan se 'animations', 'games' etc hata diye hain jo error de rahe the.
 
-# 1. Lock Mode (1 AM - 6 AM): SAB BAND
+# 1. Lock Mode: SAB BAND
 LOCK_PERMISSIONS = ChatPermissions(
     can_send_messages=False,
     can_send_media_messages=False,
-    can_send_stickers=False,        # Fix: New Permission
-    can_send_animations=False,      # Fix: New Permission
-    can_send_games=False,           # Fix: New Permission
-    can_use_inline_bots=False,      # Fix: New Permission
     can_send_polls=False,
     can_invite_users=False,
     can_pin_messages=False
 )
 
-# 2. Unlock Mode (6 AM onwards): TEXT & STICKER ONLY
+# 2. Unlock Mode: TEXT ON (Media Blocked)
 UNLOCK_PERMISSIONS = ChatPermissions(
-    can_send_messages=True,         # Text Allowed
-    can_send_media_messages=False,  # Photo/Video BLOCKED
-    can_send_stickers=True,         # Fix: Stickers Allowed
-    can_send_animations=True,       # Fix: GIFs Allowed
-    can_send_games=False,
-    can_use_inline_bots=False,
+    can_send_messages=True,
+    can_send_media_messages=False,
     can_send_polls=False,
     can_invite_users=True,
     can_pin_messages=False
@@ -72,13 +65,13 @@ async def night_mode_scheduler():
                     if should_be_locked and last_action != "locked":
                         # LOCK
                         await app.set_chat_permissions(chat_id, LOCK_PERMISSIONS)
-                        await app.send_message(chat_id, "🔐 Night Mode Active\n\nGroup is locked until 6:00 AM.\n(All permissions off)")
+                        await app.send_message(chat_id, "🔐 Night Mode Active\n\nGroup is locked until 6:00 AM.")
                         await db.update_one({"chat_id": chat_id}, {"$set": {"last_action": "locked"}})
                     
                     elif not should_be_locked and last_action != "unlocked":
                         # UNLOCK
                         await app.set_chat_permissions(chat_id, UNLOCK_PERMISSIONS)
-                        await app.send_message(chat_id, "🔓 Good Morning\n\nGroup is now open.\n(Text & Stickers allowed)")
+                        await app.send_message(chat_id, "🔓 Good Morning\n\nGroup is now open.")
                         await db.update_one({"chat_id": chat_id}, {"$set": {"last_action": "unlocked"}})
                 
                 except Exception as e:
@@ -108,8 +101,6 @@ async def setlock_command(client, message: Message):
         f"🔐 Auto Lock Settings (India Time)\n\n"
         f"Lock Time: 01:00 AM\n"
         f"Unlock Time: 06:00 AM\n\n"
-        f"Lock Mode: All Permissions OFF\n"
-        f"Unlock Mode: Text & Stickers Only\n\n"
         f"Status: {status_text}"
     )
 
@@ -159,12 +150,10 @@ async def check_perms_lock(client, callback_query: CallbackQuery):
         "📋 Permission Details\n\n"
         "1. At 01:00 AM (Lock):\n"
         "• Send Messages: ❌\n"
-        "• Send Media: ❌\n"
-        "• Send Stickers: ❌\n\n"
+        "• Send Media: ❌\n\n"
         "2. At 06:00 AM (Unlock):\n"
         "• Send Messages: ✅\n"
-        "• Send Media: ❌ (Blocked)\n"
-        "• Send Stickers: ✅"
+        "• Send Media: ❌ (Blocked)"
     )
     await callback_query.message.edit_text(
         text,
@@ -200,4 +189,4 @@ async def close_callback(client, callback_query: CallbackQuery):
         await callback_query.message.delete()
     except:
         pass
-    
+        
