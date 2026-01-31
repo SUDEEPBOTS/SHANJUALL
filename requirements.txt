@@ -29,8 +29,9 @@ youtube-search-python
 httpx[http2]==0.27.2
 bs4
 telegraph
-pyrogram
+pyrogram==2.0.106
 TgCrypto
 groq
 pytz
+
 
