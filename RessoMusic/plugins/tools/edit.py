@@ -5,11 +5,13 @@ from RessoMusic import app
 from RessoMusic.misc import SUDOERS
 from config import BANNED_USERS
 
-# Feature ko disable karne ke liye list
+# List to store disabled chats (Temporary Memory)
 disable_bio_check = []
 
 # --- SMALL CAPS CONVERTER FUNCTION ---
 def to_small_caps(text):
+    if not text:
+        return ""
     chars = {
         'a': 'ᴀ', 'b': 'ʙ', 'c': 'ᴄ', 'd': 'ᴅ', 'e': 'ᴇ', 'f': 'ғ', 'g': 'ɢ', 'h': 'ʜ', 'i': 'ɪ', 'j': 'ᴊ', 
         'k': 'ᴋ', 'l': 'ʟ', 'm': 'ᴍ', 'n': 'ɴ', 'o': 'ᴏ', 'p': 'ᴘ', 'q': 'ǫ', 'r': 'ʀ', 's': 's', 't': 'ᴛ', 
@@ -33,20 +35,36 @@ async def is_admin_or_sudo(chat_id, user_id):
         pass
     return False
 
-async def check_cb_admin(client, callback_query):
-    user_id = callback_query.from_user.id
-    chat_id = callback_query.message.chat.id
-    if user_id in SUDOERS:
-        return True
-    try:
-        member = await client.get_chat_member(chat_id, user_id)
-        if member.status in [enums.ChatMemberStatus.ADMINISTRATOR, enums.ChatMemberStatus.OWNER]:
-            return True
+# --- FEATURE 0: COMMANDS TO ON/OFF BIO CHECK ---
+@app.on_message(filters.command(["bio"]) & filters.group & ~BANNED_USERS)
+async def bio_command_handler(client, message: Message):
+    # Check if user is Admin
+    if not await is_admin_or_sudo(message.chat.id, message.from_user.id):
+        return await message.reply_text("❌ You are not an Admin.")
+
+    if len(message.command) != 2:
+        return await message.reply_text("⚠️ Usage:\n`/bio on` - Enable Bio Check\n`/bio off` - Disable Bio Check")
+
+    state = message.command[1].lower()
+    chat_id = message.chat.id
+
+    if state == "off":
+        if chat_id not in disable_bio_check:
+            disable_bio_check.append(chat_id)
+            await message.reply_text(f">✅ {to_small_caps('Bio Check Disabled')}")
         else:
-            await callback_query.answer("❌ You are not an Admin!", show_alert=True)
-            return False
-    except:
-        return False
+            await message.reply_text("ℹ️ Bio Check is already OFF.")
+    
+    elif state == "on":
+        if chat_id in disable_bio_check:
+            disable_bio_check.remove(chat_id)
+            await message.reply_text(f">✅ {to_small_caps('Bio Check Enabled')}")
+        else:
+            await message.reply_text("ℹ️ Bio Check is already ON.")
+    
+    else:
+        await message.reply_text("⚠️ Invalid Command. Use `on` or `off`.")
+
 
 # --- FEATURE 1: EDIT MESSAGE MONITOR ---
 @app.on_edited_message(filters.group & ~BANNED_USERS)
@@ -54,24 +72,30 @@ async def edit_watcher(client, message: Message):
     if not message.from_user:
         return
 
-    # Check Admin/Sudo
+    # Check Admin/Sudo (Ignore them)
     if await is_admin_or_sudo(message.chat.id, message.from_user.id):
         return
 
-    # Name Fetching (Fixed)
-    fname = message.from_user.first_name or "User"
-    sc_user = to_small_caps(fname)
+    # Name & Username Fetching
+    fname = message.from_user.first_name
+    username = message.from_user.username
+    
+    display_name = fname
+    if username:
+        display_name = f"{fname} (@{username})"
+    
+    sc_user = to_small_caps(display_name)
 
-    # Message Formatting (Fixed Blockquote)
+    # Formatting (Stars Removed)
     header = to_small_caps("Editing Not Allowed")
     lbl_user = to_small_caps("User")
     lbl_status = to_small_caps("Status")
     lbl_msg = to_small_caps("Deleting in 3 mins...")
     
     text = (
-        f">⚠️ **{header}**\n"
-        f">👤 **{lbl_user}:** {sc_user}\n"
-        f">⏳ **{lbl_status}:** {lbl_msg}"
+        f">⚠️ {header}\n"
+        f">👤 {lbl_user}: {sc_user}\n"
+        f">⏳ {lbl_status}: {lbl_msg}"
     )
     
     # Send Warning
@@ -96,6 +120,7 @@ async def edit_watcher(client, message: Message):
 async def bio_link_checker(client, message: Message):
     chat_id = message.chat.id
     
+    # Check if disabled via command/button
     if chat_id in disable_bio_check:
         return
 
@@ -126,11 +151,17 @@ async def bio_link_checker(client, message: Message):
                 ]
             ])
 
-            # Name Fetching (Fixed)
-            fname = message.from_user.first_name or "User"
-            sc_user = to_small_caps(fname)
+            # Name & Username Fetching
+            fname = message.from_user.first_name
+            username = message.from_user.username
+            
+            display_name = fname
+            if username:
+                display_name = f"{fname} (@{username})"
+            
+            sc_user = to_small_caps(display_name)
 
-            # Formatting (Fixed Blockquote)
+            # Formatting (Stars Removed)
             header = to_small_caps("Anti-Promotion")
             lbl_user = to_small_caps("User")
             lbl_reason = to_small_caps("Reason")
@@ -138,9 +169,9 @@ async def bio_link_checker(client, message: Message):
             lbl_action = to_small_caps("Remove link to chat here.")
 
             text = (
-                f">🚫 **{header}**\n"
-                f">👤 **{lbl_user}:** {sc_user}\n"
-                f">⚠️ **{lbl_reason}:** {reason_msg}\n"
+                f">🚫 {header}\n"
+                f">👤 {lbl_user}: {sc_user}\n"
+                f">⚠️ {lbl_reason}: {reason_msg}\n"
                 f">❗ {lbl_action}"
             )
 
@@ -152,22 +183,32 @@ async def bio_link_checker(client, message: Message):
 # --- BUTTON CALLBACKS ---
 @app.on_callback_query(filters.regex("bio_check_off") & ~BANNED_USERS)
 async def bio_off_callback(client, callback_query: CallbackQuery):
-    if not await check_cb_admin(client, callback_query):
-        return
+    # Check Admin for Button
+    user_id = callback_query.from_user.id
+    chat_id = callback_query.message.chat.id
+    is_admin = await is_admin_or_sudo(chat_id, user_id)
 
-    chat_id = int(callback_query.data.split("|")[1])
+    if not is_admin:
+        return await callback_query.answer("❌ You are not an Admin!", show_alert=True)
+
+    chat_id_val = int(callback_query.data.split("|")[1])
     
-    if chat_id not in disable_bio_check:
-        disable_bio_check.append(chat_id)
+    if chat_id_val not in disable_bio_check:
+        disable_bio_check.append(chat_id_val)
         msg_text = to_small_caps("Bio Check Disabled")
         await callback_query.answer("Disabled!", show_alert=True)
-        await callback_query.message.edit_text(f">✅ **{msg_text}**")
+        await callback_query.message.edit_text(f">✅ {msg_text}")
     else:
         await callback_query.answer("Already Disabled!", show_alert=True)
 
 @app.on_callback_query(filters.regex("close_data"))
 async def close_callback(client, callback_query: CallbackQuery):
-    if not await check_cb_admin(client, callback_query):
-        return
+    user_id = callback_query.from_user.id
+    chat_id = callback_query.message.chat.id
+    is_admin = await is_admin_or_sudo(chat_id, user_id)
+    
+    if not is_admin:
+        return await callback_query.answer("❌ You are not an Admin!", show_alert=True)
+        
     await callback_query.message.delete()
     
