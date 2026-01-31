@@ -15,12 +15,16 @@ TIMEZONE = pytz.timezone("Asia/Kolkata")
 LOCK_HOUR = 1   # 1 AM
 UNLOCK_HOUR = 6 # 6 AM
 
-# --- PERMISSIONS ---
+# --- PERMISSIONS (FIXED FOR NEW UPDATE) ---
+
 # 1. Lock Mode (1 AM - 6 AM): SAB BAND
 LOCK_PERMISSIONS = ChatPermissions(
     can_send_messages=False,
     can_send_media_messages=False,
-    can_send_other_messages=False,
+    can_send_stickers=False,        # Fix: New Permission
+    can_send_animations=False,      # Fix: New Permission
+    can_send_games=False,           # Fix: New Permission
+    can_use_inline_bots=False,      # Fix: New Permission
     can_send_polls=False,
     can_invite_users=False,
     can_pin_messages=False
@@ -30,7 +34,10 @@ LOCK_PERMISSIONS = ChatPermissions(
 UNLOCK_PERMISSIONS = ChatPermissions(
     can_send_messages=True,         # Text Allowed
     can_send_media_messages=False,  # Photo/Video BLOCKED
-    can_send_other_messages=True,   # Stickers Allowed
+    can_send_stickers=True,         # Fix: Stickers Allowed
+    can_send_animations=True,       # Fix: GIFs Allowed
+    can_send_games=False,
+    can_use_inline_bots=False,
     can_send_polls=False,
     can_invite_users=True,
     can_pin_messages=False
@@ -193,4 +200,4 @@ async def close_callback(client, callback_query: CallbackQuery):
         await callback_query.message.delete()
     except:
         pass
-  
+        
