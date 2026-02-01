@@ -61,5 +61,6 @@ async def gen_thumb(videoid: str):
     Seedha Static Thumbnail ka link return karega.
     Speed: 0.001s ⚡
     """
-    return "https://files.catbox.moe/vk7gj0.jpg"
+    return "https://files.catbox.moe/sb9q8z.jpg"
+
 
