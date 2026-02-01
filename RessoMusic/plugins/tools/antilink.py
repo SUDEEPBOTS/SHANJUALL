@@ -83,12 +83,12 @@ async def antilink_command(client, message: Message):
             await message.reply_text("ℹ️ **Already Disabled.**")
 
 # --- 2. MAIN LINK WATCHER ---
-# Changed group to 10 to prioritize it over generic text handlers
-@app.on_message(filters.group & (filters.text | filters.caption), group=10)
+# Priority Group 1 (High Priority)
+@app.on_message(filters.group & (filters.text | filters.caption), group=1)
 async def antilink_watcher(client, message: Message):
     chat_id = message.chat.id
     
-    # 1. Check if Feature is ON
+    # Check if this group has enabled anti-link
     if chat_id not in antilink_chats:
         return
 
@@ -97,9 +97,12 @@ async def antilink_watcher(client, message: Message):
 
     user_id = message.from_user.id
     text = message.text or message.caption
+    if not text:
+        return
+    
     text = text.lower()
 
-    # 2. Link Detection Logic
+    # Link Detection Logic
     is_link = False
     if any(keyword in text for keyword in ["http", "https", "t.me", "www.", ".com", "joinchat"]):
         is_link = True
@@ -107,10 +110,14 @@ async def antilink_watcher(client, message: Message):
     if not is_link:
         return
 
+    # Debug Log (Logs me dikhega ki link pakda gaya ya nahi)
+    print(f"[ANTILINK] Link detected in {chat_id} by {user_id}")
+
     # --- ACTION LOGIC ---
 
-    # A. Ignore Sudo Users
+    # A. Ignore Sudo Users (Owners)
     if user_id in SUDOERS:
+        print(f"[ANTILINK] Ignored Sudo User: {user_id}")
         return
 
     # B. Check Admin Status
