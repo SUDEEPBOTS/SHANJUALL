@@ -1,7 +1,7 @@
 import asyncio
 import os
 import re
-import aiohttp  # API Calls ke liye
+import aiohttp
 from typing import Union
 
 import yt_dlp
@@ -11,7 +11,8 @@ from youtubesearchpython.__future__ import VideosSearch
 
 from RessoMusic.utils.database import is_on_off
 from RessoMusic.utils.formatters import time_to_seconds
-from config import MUSIC_API_URL, MUSIC_API_KEY  # Config se URL aur Key uthayega
+from config import MUSIC_API_URL, MUSIC_API_KEY
+
 
 async def shell_cmd(cmd):
     proc = await asyncio.create_subprocess_shell(
@@ -36,14 +37,13 @@ class YouTubeAPI:
         self.listbase = "https://youtube.com/playlist?list="
         self.reg = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
-    # 🔥 1. NEW: API CALL FUNCTION (Ye Sudeep API se baat karega)
+    # 🔥 API CALL (Fast Link Fetcher)
     async def get_api_video(self, query: str):
         if not MUSIC_API_URL:
             return None
-            
+        
         base_url = MUSIC_API_URL.rstrip("/")
-        # Hum 'getvideo' use kar rahe hain taaki agar video badi ho to bhi link mil jaye
-        url = f"{base_url}/getvideo" 
+        url = f"{base_url}/getvideo"
         params = {"query": query, "key": MUSIC_API_KEY}
 
         try:
@@ -177,21 +177,21 @@ class YouTubeAPI:
             result = []
         return result
 
-    # 🔥 2. UPDATED TRACK: API se Link uthayega
+    # 🔥 TRACK FUNCTION (API FIRST)
     async def track(self, link: str, videoid: Union[bool, str] = None):
-        # 1. API Call (Fastest)
+        # 1. Try API First
         if MUSIC_API_URL and not videoid and not "http" in link:
             api_data = await self.get_api_video(link)
             if api_data:
                 return {
                     "title": api_data["title"],
-                    "link": api_data["link"],  # Ye Direct Stream Link hai
+                    "link": api_data["link"],  # Ye Direct Link hai (Telegram/Catbox)
                     "vidid": api_data["id"],
                     "duration_min": api_data["duration"],
                     "thumb": api_data["thumbnail"],
                 }, api_data["id"]
 
-        # 2. Local Fallback (Agar API fail hui to purana tarika)
+        # 2. Local Fallback
         if videoid:
             link = self.base + link
         if "&" in link:
@@ -278,16 +278,55 @@ class YouTubeAPI:
         title: Union[bool, str] = None,
     ) -> str:
         
-        # 🔥 3. DIRECT STREAM (BINA DOWNLOAD KE)
-        # Agar link "http" hai aur "youtube" nahi hai (mtlb API ka link hai)
-        # to use Download mat karo, seedha PLAYER ko de do.
+        # 🔥 ULTRA FAST DOWNLOADER (ARIA2) 🚀
+        # Agar link direct hai (mtlb API se aaya hai), to ARIA2 se download karo.
         is_youtube = ("youtube.com" in link or "youtu.be" in link)
         if "http" in link and not is_youtube and not videoid:
-            print(f"🚀 Direct Stream: Passing URL to Player -> {link}")
-            # Hum 'True' return kar rahe hain jo 'direct=True' maana jayega
-            return link, True
+            print(f"🚀 ULTRA MODE: Downloading via Aria2 -> {link}")
+            try:
+                if not os.path.exists("downloads"):
+                    os.makedirs("downloads")
 
-        # ⬇️ Agar API use nahi hui, to neeche wala purana downloader chalega (yt-dlp)
+                # Filename fix (URL se Query hata kar)
+                filename = link.split("/")[-1].split("?")[0]
+                if not filename.endswith((".mp3", ".mp4", ".m4a", ".webm")):
+                     # Agar extension nahi mila to safe side ke liye mp4 laga do
+                    filename = f"video_{os.urandom(4).hex()}.mp4"
+                
+                xyz = os.path.join("downloads", filename)
+
+                if os.path.exists(xyz):
+                    return xyz, True
+
+                # Aria2 Command (16x Connections)
+                cmd = [
+                    "aria2c",
+                    "-x16", # 16 connections
+                    "-s16", # 16 splits
+                    "-k1M", # Min split size
+                    "-d", "downloads",
+                    "-o", filename,
+                    link
+                ]
+                
+                process = await asyncio.create_subprocess_exec(
+                    *cmd,
+                    stdout=asyncio.subprocess.PIPE,
+                    stderr=asyncio.subprocess.PIPE
+                )
+                stdout, stderr = await process.communicate()
+
+                if os.path.exists(xyz):
+                    print(f"✅ Download Complete: {xyz}")
+                    # Return path and True (True mtlb direct/local file hai)
+                    return xyz, True
+                else:
+                    print(f"❌ Aria2 Failed, falling back to yt-dlp. Error: {stderr.decode()}")
+
+            except Exception as e:
+                print(f"⚠️ Aria2 Exception: {e}")
+
+        # ⬇️ NORMAL YT-DLP FALLBACK
         if videoid:
             link = self.base + link
         loop = asyncio.get_running_loop()
