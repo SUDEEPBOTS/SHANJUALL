@@ -56,7 +56,7 @@ PRIVACY_LINK = getenv("PRIVACY_LINK", "https://files.catbox.moe/jyeumn.jpg")
 # 🔥 NEW: MUSIC API CONFIGURATION (Added this for youtube.py)
 # Default URL maine aapki wali daal di hai
 MUSIC_API_URL = "https://newapi-srxu.onrender.com"
-MUSIC_API_KEY = SUDEEP123
+MUSIC_API_KEY = "SUDEEP123"
 
 
 # Get this credentials from https://developer.spotify.com/dashboard
