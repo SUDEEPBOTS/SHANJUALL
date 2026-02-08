@@ -37,18 +37,21 @@ class YouTubeAPI:
         self.listbase = "https://youtube.com/playlist?list="
         self.reg = re.compile(r"\x1B(?:[@-Z\\-_]|\[[0-?]*[ -/]*[@-~])")
 
-    # 🔥 API CALL (Fast Link Fetcher)
-    async def get_api_video(self, query: str):
+    # 🔥 API CALL (Updated for Audio/Video selection)
+    async def get_api_video(self, query: str, stream_type: str = "audio"):
         if not MUSIC_API_URL:
             return None
         
         base_url = MUSIC_API_URL.rstrip("/")
-        url = f"{base_url}/getvideo"
+        # Smartly choose endpoint
+        endpoint = "/getvideo" if stream_type == "video" else "/getaudio"
+        url = f"{base_url}{endpoint}"
+        
         params = {"query": query, "key": MUSIC_API_KEY}
 
         try:
             async with aiohttp.ClientSession() as session:
-                async with session.get(url, params=params, timeout=10) as resp:
+                async with session.get(url, params=params, timeout=15) as resp:
                     if resp.status == 200:
                         data = await resp.json()
                         if data.get("status") == 200:
@@ -177,15 +180,18 @@ class YouTubeAPI:
             result = []
         return result
 
-    # 🔥 TRACK FUNCTION (API FIRST)
+    # 🔥 TRACK FUNCTION (Updated for Smart Cache)
     async def track(self, link: str, videoid: Union[bool, str] = None):
         # 1. Try API First
         if MUSIC_API_URL and not videoid and not "http" in link:
-            api_data = await self.get_api_video(link)
+            # Default to Audio (Fastest for Music)
+            # If you need video support here, pass stream_type="video"
+            api_data = await self.get_api_video(link, stream_type="audio")
+            
             if api_data:
                 return {
                     "title": api_data["title"],
-                    "link": api_data["link"],  # Ye Direct Link hai (Telegram/Catbox)
+                    "link": api_data["link"],  # API Direct Link
                     "vidid": api_data["id"],
                     "duration_min": api_data["duration"],
                     "thumb": api_data["thumbnail"],
@@ -266,6 +272,7 @@ class YouTubeAPI:
         thumbnail = result[query_type]["thumbnails"][0]["url"].split("?")[0]
         return title, duration_min, thumbnail, vidid
 
+    # 🔥 SMART DOWNLOADER WITH GLOBAL CACHE
     async def download(
         self,
         link: str,
@@ -278,32 +285,38 @@ class YouTubeAPI:
         title: Union[bool, str] = None,
     ) -> str:
         
-        # 🔥 ULTRA FAST DOWNLOADER (ARIA2) 🚀
-        # Agar link direct hai (mtlb API se aaya hai), to ARIA2 se download karo.
+        # 1. Determine Unique Filename (Global Cache)
+        # Use VideoID as name so multiple groups share the same file
+        if videoid:
+            if video or songvideo:
+                 filename = f"{videoid}.mp4"
+            else:
+                 filename = f"{videoid}.mp3"
+        else:
+            # Fallback (Safety)
+            filename = link.split("/")[-1].split("?")[0]
+            if not filename.endswith((".mp3", ".mp4")):
+                 filename = f"{filename}.mp3"
+
+        if not os.path.exists("downloads"):
+            os.makedirs("downloads")
+            
+        file_path = os.path.join("downloads", filename)
+
+        # 2. CACHE CHECK (The Speed Secret)
+        if os.path.exists(file_path):
+            print(f"🚀 Cache Hit: {file_path}")
+            return file_path, True
+
+        # 3. API / ARIA2 DOWNLOAD
         is_youtube = ("youtube.com" in link or "youtu.be" in link)
-        if "http" in link and not is_youtube and not videoid:
-            print(f"🚀 ULTRA MODE: Downloading via Aria2 -> {link}")
+        if "http" in link and not is_youtube:
+            print(f"🚀 ARIA2 MODE: Downloading -> {filename}")
             try:
-                if not os.path.exists("downloads"):
-                    os.makedirs("downloads")
-
-                # Filename fix (URL se Query hata kar)
-                filename = link.split("/")[-1].split("?")[0]
-                if not filename.endswith((".mp3", ".mp4", ".m4a", ".webm")):
-                     # Agar extension nahi mila to safe side ke liye mp4 laga do
-                    filename = f"video_{os.urandom(4).hex()}.mp4"
-                
-                xyz = os.path.join("downloads", filename)
-
-                if os.path.exists(xyz):
-                    return xyz, True
-
                 # Aria2 Command (16x Connections)
                 cmd = [
                     "aria2c",
-                    "-x16", # 16 connections
-                    "-s16", # 16 splits
-                    "-k1M", # Min split size
+                    "-x16", "-s16",
                     "-d", "downloads",
                     "-o", filename,
                     link
@@ -316,17 +329,14 @@ class YouTubeAPI:
                 )
                 stdout, stderr = await process.communicate()
 
-                if os.path.exists(xyz):
-                    print(f"✅ Download Complete: {xyz}")
-                    # Return path and True (True mtlb direct/local file hai)
-                    return xyz, True
+                if os.path.exists(file_path):
+                    return file_path, True
                 else:
-                    print(f"❌ Aria2 Failed, falling back to yt-dlp. Error: {stderr.decode()}")
-
+                    print(f"❌ Aria2 Failed: {stderr.decode()}")
             except Exception as e:
                 print(f"⚠️ Aria2 Exception: {e}")
 
-        # ⬇️ NORMAL YT-DLP FALLBACK
+        # ⬇️ NORMAL YT-DLP FALLBACK (If API fails or URL is YouTube)
         if videoid:
             link = self.base + link
         loop = asyncio.get_running_loop()
@@ -438,3 +448,4 @@ class YouTubeAPI:
             direct = True
             downloaded_file = await loop.run_in_executor(None, audio_dl)
         return downloaded_file, direct
+                       
