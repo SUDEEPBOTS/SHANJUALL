@@ -29,11 +29,12 @@ youtube-search-python
 httpx[http2]==0.27.2
 bs4
 telegraph
-pyrogram>=2.0.106
+https://github.com/Pyrogram/pyrogram/archive/master.zip
 TgCrypto
 groq
 pytz
 gpytranslate
+# Force Update 1
 
 
 
