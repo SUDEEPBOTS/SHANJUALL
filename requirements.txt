@@ -30,5 +30,7 @@ telegraph
 groq
 pytz
 gpytranslate
-https://github.com/KurimuzonAkuma/pyrogram/archive/v2.1.23.zip
+https://github.com/KurimuzonAkuma/pyrogram/archive/v2.2.18.zip
+
+# Force Update Fix
 # Force Update Fix
