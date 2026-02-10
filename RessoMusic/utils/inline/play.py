@@ -8,11 +8,11 @@ from RessoMusic.utils.formatters import time_to_seconds
 def track_markup(_, videoid, user_id, channel, fplay):
     buttons = [
         [
-            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/+rQqhGhdP7tRkMmM1"),
-            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/ll_MY_CORE_ll"),
+            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/Aura_Hunter"),
+            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/+JSJvtrVjf780YTQ9"),
         ],
         [
-            InlineKeyboardButton("˹ᴀɴɪʏᴀ ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
+            InlineKeyboardButton("˹kiwi ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
         ],
         [
             # Close button ko RED (Destructive) kar diya
@@ -25,11 +25,11 @@ def track_markup(_, videoid, user_id, channel, fplay):
 def stream_markup(_, chat_id):
     buttons = [
         [
-            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/+rQqhGhdP7tRkMmM1"),
-            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/ll_MY_CORE_ll"),
+            InlineKeyboardButton(text=" ᴜᴘᴅᴀᴛᴇ ", url="https://t.me/Aura_Hunter"),
+            InlineKeyboardButton(text=" sᴜᴘᴘᴏʀᴛ ", url="https://t.me/+JSJvtrVjf780YTQ9"),
         ],
         [
-            InlineKeyboardButton("˹ᴀɴɪʏᴀ ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
+            InlineKeyboardButton("˹kiwo ᴛᴜɴᴇs˼♪", url="https://yukiapp-steel.vercel.app/"),
         ],
         [
             # 🔵 Resume = Primary (Blue/Main)
