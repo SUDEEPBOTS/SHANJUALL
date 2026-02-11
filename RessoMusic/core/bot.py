@@ -1,6 +1,6 @@
-#import uvloop
+import uvloop
 
-#uvloop.install()
+uvloop.install()
 
 from pyrogram import Client, errors
 from pyrogram.enums import ChatMemberStatus, ParseMode
@@ -55,3 +55,4 @@ class AMBOTOP(Client):
 
     async def stop(self):
         await super().stop()
+
