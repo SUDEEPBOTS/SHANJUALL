@@ -280,7 +280,7 @@ class Call(PyTgCalls):
         await asyncio.sleep(0.2)
         await assistant.leave_group_call(config.LOG_GROUP_ID)
 
-        async def join_call(
+    async def join_call(
         self,
         chat_id: int,
         original_chat_id: int,
@@ -629,4 +629,5 @@ class Call(PyTgCalls):
 
 
 AMBOTOP = Call()
+
 
