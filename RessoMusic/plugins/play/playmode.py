@@ -46,7 +46,7 @@ async def fetch_channels():
     if HINDI_CHANNELS:
         return "SUCCESS"
     
-    url = "[https://iptv-org.github.io/iptv/languages/hin.m3u](https://iptv-org.github.io/iptv/languages/hin.m3u)"
+    url = "https://iptv-org.github.io/iptv/languages/hin.m3u](https://iptv-org.github.io/iptv/languages/hin.m3u"
     # 🔥 Website ko lagna chahiye ki Chrome browser se aayi hai request
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
@@ -158,3 +158,4 @@ async def tv_callbacks(client, CallbackQuery: CallbackQuery, _):
         except Exception as e:
             await mystic.edit_text(f"❌ ᴇʀʀᴏʀ : {e}")
         l8kk88
+
