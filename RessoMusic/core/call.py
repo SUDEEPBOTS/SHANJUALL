@@ -280,7 +280,7 @@ class Call(PyTgCalls):
         await asyncio.sleep(0.2)
         await assistant.leave_group_call(config.LOG_GROUP_ID)
 
-    async def join_call(
+        async def join_call(
         self,
         chat_id: int,
         original_chat_id: int,
@@ -291,34 +291,64 @@ class Call(PyTgCalls):
         assistant = await group_assistant(self, chat_id)
         language = await get_lang(chat_id)
         _ = get_string(language)
+
+        # 🔥 1. FFMPEG Bypass Flags for Proxy/M3U8
+        ffmpeg_params = ""
+        if isinstance(link, str) and ("apiinews" in link or "m3u8" in link):
+            ffmpeg_params = (
+                "-timeout 10000000 "
+                "-reconnect 1 -reconnect_streamed 1 -reconnect_delay_max 5 "
+                "-user_agent \"Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36\" "
+                "-allowed_extensions ALL"
+            )
+
+        # 🔥 2. Assign FFMPEG flags to Stream
         if video:
             stream = AudioVideoPiped(
                 link,
                 audio_parameters=HighQualityAudio(),
                 video_parameters=MediumQualityVideo(),
+                additional_ffmpeg_parameters=ffmpeg_params if ffmpeg_params else None
             )
         else:
-            stream = (
-                AudioVideoPiped(
-                    link,
-                    audio_parameters=HighQualityAudio(),
-                    video_parameters=MediumQualityVideo(),
-                )
-                if video
-                else AudioPiped(link, audio_parameters=HighQualityAudio())
+            stream = AudioPiped(
+                link,
+                audio_parameters=HighQualityAudio(),
+                additional_ffmpeg_parameters=ffmpeg_params if ffmpeg_params else None
             )
+
         try:
             await assistant.join_group_call(
                 chat_id,
                 stream,
                 stream_type=StreamType().pulse_stream,
             )
-        except NoActiveGroupCall:
-            raise AssistantErr(_["call_8"])
-        except AlreadyJoinedError:
-            raise AssistantErr(_["call_9"])
-        except TelegramServerError:
-            raise AssistantErr(_["call_10"])
+        except Exception as e:
+            error_msg = str(e)
+            # 🔥 3. Fallback Logic: Agar Video block ho toh Audio try karo
+            if "No video source found" in error_msg:
+                try:
+                    fallback_stream = AudioPiped(
+                        link,
+                        audio_parameters=HighQualityAudio(),
+                        additional_ffmpeg_parameters=ffmpeg_params if ffmpeg_params else None
+                    )
+                    await assistant.join_group_call(
+                        chat_id,
+                        fallback_stream,
+                        stream_type=StreamType().pulse_stream,
+                    )
+                except Exception as fallback_error:
+                    raise AssistantErr(f"❌ Proxy Stream Failed! FFMPEG block ho gaya.\nDetail: `{fallback_error}`")
+            elif "NoActiveGroupCall" in error_msg or type(e).__name__ == "NoActiveGroupCall":
+                raise AssistantErr(_["call_8"])
+            elif "AlreadyJoinedError" in error_msg or type(e).__name__ == "AlreadyJoinedError":
+                raise AssistantErr(_["call_9"])
+            elif "TelegramServerError" in error_msg or type(e).__name__ == "TelegramServerError":
+                raise AssistantErr(_["call_10"])
+            else:
+                raise AssistantErr(f"❌ PyTgCalls Error: {error_msg}")
+
         await add_active_chat(chat_id)
         await music_on(chat_id)
         if video:
@@ -328,7 +358,7 @@ class Call(PyTgCalls):
             users = len(await assistant.get_participants(chat_id))
             if users == 1:
                 autoend[chat_id] = datetime.now() + timedelta(minutes=1)
-
+                
     async def change_stream(self, client, chat_id):
         check = db.get(chat_id)
         popped = None
@@ -599,3 +629,4 @@ class Call(PyTgCalls):
 
 
 AMBOTOP = Call()
+
