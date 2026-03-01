@@ -1,5 +1,4 @@
 import aiohttp
-import urllib.parse  # 🔥 Added for encoding URLs
 from pyrogram import filters
 from pyrogram.types import InlineKeyboardMarkup, Message, InlineKeyboardButton, CallbackQuery
 
@@ -135,11 +134,7 @@ async def tv_callbacks(client, CallbackQuery: CallbackQuery, _):
         idx = int(data.split("_")[1])
         channel = HINDI_CHANNELS[idx]
         channel_name = channel["name"]
-        
-        # 🔥 HELLFIREDEVS DYNAMIC PROXY LINK INTEGRATION
-        original_url = channel["url"]
-        safe_url = urllib.parse.quote(original_url, safe='')
-        channel_url = f"https://apiinews-d58e676a42ec.herokuapp.com/stream?url={safe_url}"
+        channel_url = channel["url"]
         
         await CallbackQuery.answer(f"sᴛᴀʀᴛɪɴɢ {channel_name}...", show_alert=False)
         mystic = await CallbackQuery.message.edit_text(
@@ -164,4 +159,4 @@ async def tv_callbacks(client, CallbackQuery: CallbackQuery, _):
             )
         except Exception as e:
             await mystic.edit_text(f"```\n❌ ᴇʀʀᴏʀ : {e}\n```")
-        
+            
