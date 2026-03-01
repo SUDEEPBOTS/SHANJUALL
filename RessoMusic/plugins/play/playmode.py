@@ -46,7 +46,7 @@ async def fetch_channels():
     if HINDI_CHANNELS:
         return "SUCCESS"
     
-    url = "https://iptv-org.github.io/iptv/languages/hin.m3u"
+    url = "[https://iptv-org.github.io/iptv/languages/hin.m3u](https://iptv-org.github.io/iptv/languages/hin.m3u)"
     # 🔥 Website ko lagna chahiye ki Chrome browser se aayi hai request
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
@@ -103,17 +103,17 @@ def get_tv_keyboard(page: int = 0):
 @app.on_message(filters.command(["tvplay", "livetv"]) & filters.group & ~BANNED_USERS)
 @language
 async def tv_play_cmd(client, message, _):
-    mystic = await message.reply_text("```\n🔄 ʟᴏᴀᴅɪɴɢ ʜᴇʟʟғɪʀᴇᴅᴇᴠs ʟɪᴠᴇ ᴛᴠ...\n```")
+    mystic = await message.reply_text("🔄 ʟᴏᴀᴅɪɴɢ ʜᴇʟʟғɪʀᴇᴅᴇᴠs ʟɪᴠᴇ ᴛᴠ...")
     
     status = await fetch_channels() 
     
     if not HINDI_CHANNELS:
         # 🔥 Ab actual error Telegram pe dikhega
-        return await mystic.edit_text(f"```\n❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴏᴀᴅ ᴄʜᴀɴɴᴇʟs !\n⚠️ ʀᴇᴀsᴏɴ : {status[:50]}\n```")
+        return await mystic.edit_text(f"❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴏᴀᴅ ᴄʜᴀɴɴᴇʟs !\n⚠️ ʀᴇᴀsᴏɴ : {status[:50]}")
     
     keyboard = get_tv_keyboard(page=0)
     await mystic.edit_text(
-        "```\n📡 ʜᴇʟʟғɪʀᴇᴅᴇᴠs ʟɪᴠᴇ ᴛᴠ\n\n📺 sᴇʟᴇᴄᴛ ᴀ ᴄʜᴀɴɴᴇʟ ᴛᴏ sᴛʀᴇᴀᴍ ᴏɴ ᴠᴄ :\n```",
+        "📡 ʜᴇʟʟғɪʀᴇᴅᴇᴠs ʟɪᴠᴇ ᴛᴠ\n\n📺 sᴇʟᴇᴄᴛ ᴀ ᴄʜᴀɴɴᴇʟ ᴛᴏ sᴛʀᴇᴀᴍ ᴏɴ ᴠᴄ :",
         reply_markup=keyboard
     )
 
@@ -138,13 +138,11 @@ async def tv_callbacks(client, CallbackQuery: CallbackQuery, _):
         
         await CallbackQuery.answer(f"sᴛᴀʀᴛɪɴɢ {channel_name}...", show_alert=False)
         mystic = await CallbackQuery.message.edit_text(
-            f"```\n📺 ᴘʟᴀʏɪɴɢ ʟɪᴠᴇ ᴛᴠ : {channel_name}\n\n⚡ ʜᴇʟʟғɪʀᴇ ᴇɴɢɪɴᴇ ʟᴏᴀᴅɪɴɢ...\n```"
+            f"📺 ᴘʟᴀʏɪɴɢ ʟɪᴠᴇ ᴛᴠ : {channel_name}\n\n⚡ ʜᴇʟʟғɪʀᴇ ᴇɴɢɪɴᴇ ʟᴏᴀᴅɪɴɢ..."
         )
         
         user_id = CallbackQuery.from_user.id
-        user_name = CallbackQuery.from_user.first_name
-        chat_id = CallbackQuery.message.chat.id
-        
+        user_
         try:
             await stream(
                 _, 
@@ -158,5 +156,5 @@ async def tv_callbacks(client, CallbackQuery: CallbackQuery, _):
                 streamtype="index" 
             )
         except Exception as e:
-            await mystic.edit_text(f"```\n❌ ᴇʀʀᴏʀ : {e}\n```")
-            
+            await mystic.edit_text(f"❌ ᴇʀʀᴏʀ : {e}")
+        l8kk88
