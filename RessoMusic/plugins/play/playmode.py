@@ -36,35 +36,47 @@ async def playmode_(client, message: Message, _):
         reply_markup=InlineKeyboardMarkup(buttons),
     )
 
-
 # ==========================================
-# 📺 HELLFIREDEVS LIVE TV CODE ADDED HERE
+# 📺 HELLFIREDEVS LIVE TV (UPDATED WITH FIXES)
 # ==========================================
 HINDI_CHANNELS = []
 
 async def fetch_channels():
     global HINDI_CHANNELS
     if HINDI_CHANNELS:
-        return 
+        return "SUCCESS"
     
-    url = "[https://iptv-org.github.io/iptv/languages/hin.m3u](https://iptv-org.github.io/iptv/languages/hin.m3u)"
+    url = "https://iptv-org.github.io/iptv/languages/hin.m3u"
+    # 🔥 Website ko lagna chahiye ki Chrome browser se aayi hai request
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 Safari/537.36"
+    }
+    
     try:
         async with aiohttp.ClientSession() as session:
-            async with session.get(url) as resp:
+            async with session.get(url, headers=headers) as resp:
+                if resp.status != 200:
+                    return f"HTTP ᴇʀʀᴏʀ {resp.status}"
                 text = await resp.text()
                 
         lines = text.strip().split("\n")
         current_name = ""
         
         for line in lines:
+            line = line.strip()
             if line.startswith("#EXTINF"):
                 current_name = line.split(",")[-1].strip()
             elif line.startswith("http"):
                 if current_name:
-                    HINDI_CHANNELS.append({"name": current_name, "url": line.strip()})
+                    HINDI_CHANNELS.append({"name": current_name, "url": line})
                     current_name = ""
+                    
+        if not HINDI_CHANNELS:
+            return "ʟɪsᴛ ɪs ᴇᴍᴘᴛʏ ᴏʀ ғᴏʀᴍᴀᴛ ᴄʜᴀɴɢᴇᴅ"
+        return "SUCCESS"
+        
     except Exception as e:
-        print(f"Error fetching TV channels: {e}")
+        return str(e)
 
 def get_tv_keyboard(page: int = 0):
     buttons = []
@@ -92,10 +104,12 @@ def get_tv_keyboard(page: int = 0):
 @language
 async def tv_play_cmd(client, message, _):
     mystic = await message.reply_text("```\n🔄 ʟᴏᴀᴅɪɴɢ ʜᴇʟʟғɪʀᴇᴅᴇᴠs ʟɪᴠᴇ ᴛᴠ...\n```")
-    await fetch_channels() 
+    
+    status = await fetch_channels() 
     
     if not HINDI_CHANNELS:
-        return await mystic.edit_text("```\n❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴏᴀᴅ ᴄʜᴀɴɴᴇʟs !\n```")
+        # 🔥 Ab actual error Telegram pe dikhega
+        return await mystic.edit_text(f"```\n❌ ғᴀɪʟᴇᴅ ᴛᴏ ʟᴏᴀᴅ ᴄʜᴀɴɴᴇʟs !\n⚠️ ʀᴇᴀsᴏɴ : {status[:50]}\n```")
     
     keyboard = get_tv_keyboard(page=0)
     await mystic.edit_text(
