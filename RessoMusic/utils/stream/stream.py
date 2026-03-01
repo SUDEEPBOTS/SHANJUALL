@@ -401,8 +401,53 @@ async def stream(
             )
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
+            
     elif streamtype == "index":
         link = result
+        
+        # 🔥 APIINEWS PROXY BYPASS LOGIC START 🔥
+        if isinstance(link, str) and "apiinews" in link:
+            try:
+                if not await is_active_chat(chat_id):
+                    if not forceplay:
+                        db[chat_id] = []
+                    # Bina validation ke direct call join karna
+                    await AMBOTOP.join_call(
+                        chat_id,
+                        original_chat_id,
+                        link,
+                        video=True if video else None,
+                    )
+                
+                # Bot ko skip/stop mein issue na aaye isliye dummy queue entry
+                await put_queue_index(
+                    chat_id,
+                    original_chat_id,
+                    "index_url",
+                    "Proxy Direct Stream",
+                    "Live",
+                    user_name,
+                    link,
+                    "video" if video else "audio",
+                    forceplay=forceplay,
+                )
+                
+                if mystic:
+                    try:
+                        await mystic.delete()
+                    except:
+                        pass
+                
+                return await app.send_message(
+                    original_chat_id, 
+                    "✅ **Proxy Stream Bypassed & Playing Successfully!**"
+                )
+                
+            except Exception as e:
+                return await app.send_message(original_chat_id, f"❌ **Proxy Error:** `{e}`")
+        # 🔥 APIINEWS PROXY BYPASS LOGIC END 🔥
+
+        # 👇 Normal Index Logic (Unchanged) 👇
         title = "ɪɴᴅᴇx ᴏʀ ᴍ3ᴜ8 ʟɪɴᴋ"
         duration_min = "00:00"
         if await is_active_chat(chat_id):
@@ -453,4 +498,4 @@ async def stream(
             db[chat_id][0]["mystic"] = run
             db[chat_id][0]["markup"] = "tg"
             await mystic.delete()
-            
+                
