@@ -213,6 +213,59 @@ async def braodcast_message(client, message, _):
     IS_BROADCASTING = False
 
 
+# ==========================================
+# 🔥 HELLFIREDEVS BLIND DELETE BRAHMASTRA 🔥
+# ==========================================
+@app.on_message(filters.command(["undo", "undobroadcast"], prefixes=["/", ".", "!"]) & SUDOERS)
+async def blind_delete_broadcast(client, message):
+    msg = await message.reply_text("🔥 **Initiating Blind Delete...**\nGathering all chats and users from database.")
+    
+    # Database se saari IDs nikal rahe hain
+    target_ids = set()
+    
+    try:
+        served_chats = await get_served_chats()
+        for chat in served_chats:
+            target_ids.add(int(chat["chat_id"]))
+            
+        served_users = await get_served_users()
+        for user in served_users:
+            target_ids.add(int(user["user_id"]))
+    except Exception as e:
+        return await msg.edit_text(f"❌ Error fetching targets from DB: {e}")
+
+    if not target_ids:
+        return await msg.edit_text("❌ No targets found in database.")
+        
+    await msg.edit_text(f"⏳ **Starting cleanup for {len(target_ids)} targets.**\nDeleting last 10 messages from each chat. This might take a minute...")
+    
+    success_count = 0
+    failed_count = 0
+    
+    for target_id in target_ids:
+        try:
+            # 1. Ek silent message bhej kar latest ID nikalna
+            temp_msg = await app.send_message(target_id, ".", disable_notification=True)
+            current_id = temp_msg.id
+            
+            # 2. Pichle 10 messages ki range banana (isme temp_msg bhi ud jayega)
+            ids_to_delete = list(range(current_id, current_id - 10, -1))
+            
+            # 3. Ek jhatke mein sab saaf
+            await app.delete_messages(target_id, ids_to_delete)
+            
+            success_count += 1
+            await asyncio.sleep(0.5) # Telegram spam limit se bachne ke liye
+            
+        except FloodWait as fw:
+            await asyncio.sleep(fw.value + 1)
+        except Exception:
+            failed_count += 1
+            continue
+            
+    await msg.edit_text(f"🎉 **Cleanup Mission Completed!**\n\n✅ Successfully cleared in: `{success_count}` chats/users.\n❌ Failed/Skipped in: `{failed_count}` chats/users.\n\nHacker ka kachra saaf ho gaya! 😎")
+
+
 async def auto_clean():
     while not await asyncio.sleep(10):
         try:
@@ -234,3 +287,4 @@ async def auto_clean():
 
 
 asyncio.create_task(auto_clean())
+                        
